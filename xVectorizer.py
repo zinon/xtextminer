@@ -1,6 +1,7 @@
-from sklearn.feature_extraction.text import CountVectorizer
 import pandas as pd
 from typing import List
+
+import xCustomVectorizer as xCV
 
 class xVectorizer(object):
     def __init__(self, data = None):
@@ -29,6 +30,12 @@ class xVectorizer(object):
         #vectorizer class
         self.__vectorizer = None
 
+    
+    def __str__(self):
+        return self.data_frame.to_string()
+
+    def __repr__(self):
+        return "{self.__class__.__name__}\n{self.data_frame.to_string()}"
 
     @property
     def data_frame(self):
@@ -93,21 +100,19 @@ class xVectorizer(object):
                                          columns = self.feature_names)
             
     def set_vectorizer(self):
-        self.__vectorizer = CountVectorizer()
-
+        self.__vectorizer = xCV.custom_vectorizer
+        
     def fit_transform(self):
         """ 
         Learns the vocabulary dictionary and 
         returns document-term matrix 
         of shape (n_samples, n_features)
         """
-        print("HELLO", self.__data.texts)
-        self.__data_matrix = self.__vectorizer.fit_transform(raw_documents = self.__data.texts)
-        print("HEY", self.__data_matrix)
-
+        if self.__vectorizer:
+            self.__data_matrix = self.__vectorizer.fit_transform(raw_documents = self.__data.texts)
+        else:
+            print('null count vectorizer')
+            
     def apply(self):
         self.set_vectorizer()
         self.fit_transform()
-
-        print('CIAO')
-        print(self.data_frame)
