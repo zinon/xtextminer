@@ -12,7 +12,7 @@ class xVectorizer(object):
         #a holder of data
         self.__data = data
 
-        #spare term matrix
+        #sparse document term matrix (DTM)
         self.__data_matrix = None
 
         #matrix in array format
@@ -104,8 +104,8 @@ class xVectorizer(object):
         
     def fit_transform(self):
         """ 
-        Learns the vocabulary dictionary and 
-        returns document-term matrix 
+        Learns the vocabulary dictionary  
+        Creates a document-term matrix (DTM) 
         of shape (n_samples, n_features)
         """
         if self.__vectorizer:

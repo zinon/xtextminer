@@ -20,7 +20,7 @@ class xPreprocessor(object):
             print('preprocessor: cannot process a non-string-like parsed arg')
         return None
 
-    def clean(self, text):
+    def clean(self, text = None) -> str:
         """
         function order is important
         """

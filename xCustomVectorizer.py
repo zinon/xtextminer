@@ -1,16 +1,10 @@
 from sklearn.feature_extraction.text import CountVectorizer
-import spacy
+
 from xPreprocessor import xPreprocessor
+from xTokenizer import xTokenizer
 
 ### must be put in a base class
 
-# load spacy vocubulary
-#spacy_lib = 'en'
-spacy_lib = 'en_core_web_sm'
-nlp = spacy.load(spacy_lib)
-lemmatizer = spacy.lang.en.English()
-tokenizer = nlp.Defaults.create_tokenizer(nlp)
-spacy_stopwords = nlp.Defaults.stop_words
 
     
 
@@ -35,9 +29,10 @@ def tokenizer2(doc):
 
 
 preprocessor = xPreprocessor()
+tokenizer = xTokenizer()
 
 
 custom_vectorizer = CountVectorizer(preprocessor = preprocessor,
-                                    tokenizer = tokenizer2)
+                                    tokenizer = tokenizer)
 
 #custom_vectorizer = CountVectorizer()
