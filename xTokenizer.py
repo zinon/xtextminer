@@ -1,13 +1,6 @@
-import spacy
-# load spacy vocubulary
-#spacy_lib = 'en'
-spacy_lib = 'en_core_web_sm'
-nlp = spacy.load(spacy_lib)
-spacy_lemmatizer = spacy.lang.en.English()
-spacy_tokenizer = nlp.Defaults.create_tokenizer(nlp)
-spacy_stopwords = nlp.Defaults.stop_words
 
 
+from xSpacy import xSpacy
 
 class xTokenizer(object):
     def __init__(self):
