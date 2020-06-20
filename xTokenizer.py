@@ -1,6 +1,6 @@
-
-
 from xSpacy import xSpacy
+
+xs = xSpacy()
 
 class xTokenizer(object):
     def __init__(self):
@@ -28,7 +28,7 @@ class xTokenizer(object):
         """
         spacy lemmatizer --> tokens
         """
-        lemmas = spacy_lemmatizer(text)
+        lemmas = xs.lemmatizer(text)
         tokens = [lemma.lemma_ for lemma in lemmas if not lemma.is_stop]
         return(tokens)
 
@@ -38,7 +38,7 @@ class xTokenizer(object):
         spacy tokenizer --> lemmas
         """
 
-        tokens = spacy_tokenizer(text)
+        tokens = xs.tokenizer(text)
         lemmas = [ token.lemma_ for token in tokens if not token.is_stop]
         return(lemmas)
     

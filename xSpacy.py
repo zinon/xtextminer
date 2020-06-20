@@ -3,14 +3,14 @@ import spacy
 #spacy_lib = 'en'
 
 class xSpacy():
-    def __init__(self, libary:'small'):
+    def __init__(self, library:str = 'small'):
         self.__library    = self.set_library(library)
         self.__nlp        = spacy.load(self.__library)
         self.__lemmatizer = spacy.lang.en.English()
-        self.__tokenizer  = nlp.Defaults.create_tokenizer(self.__nlp)
-        self.__stopwords  = nlp.Defaults.stop_words
+        self.__tokenizer  = self.__nlp.Defaults.create_tokenizer(self.__nlp)
+        self.__stopwords  = self.__nlp.Defaults.stop_words
     
-    def set_library(lib:str) -> str:
+    def set_library(self, lib:str) -> str:
         lib = lib.lower()
         if lib == 'small':
             return 'en_core_web_sm'
