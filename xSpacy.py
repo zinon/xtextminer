@@ -1,6 +1,13 @@
 import spacy
-# load spacy vocubulary
-#spacy_lib = 'en'
+from typing import Dict
+
+
+#class xStopwords():
+    
+#    
+
+    #Printing first ten stop words:
+    
 
 class xSpacy():
     def __init__(self, library:str = 'small'):
@@ -19,8 +26,20 @@ class xSpacy():
         elif lib == 'large':
             return 'en_core_web_lg'
         else:
-            print("xspacy: unknown vocabuly size '%s'. Returning small edition."%lib)
-        return ""
+            print("xspacy: unknown vocabuly size '%s'. Returning default."%lib)
+        return "en"
+
+    def update_stopwords(self, words:Dict[str, bool]) -> None:
+        #add new stopwords
+        #words = { "SAP":True, "becomes":False}
+
+        for key, value in words.items():
+            nlp.vocab[key].is_stop = value
+            
+    def show_stopwords(self):
+        print('Number of stop words: %d' % len(self.__stopwords))
+        print('First ten stop words: %s' % list(self.__stopwords)[:10])
+        print(self.__stopwords)
         
     @property
     def library(self):

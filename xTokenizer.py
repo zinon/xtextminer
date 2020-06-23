@@ -22,23 +22,42 @@ class xTokenizer(object):
         return None
 
     def process(self, text:str):
-        return self.process2(text)
+        return self.process1(text)
+
+    def allowed(self, token):
+        """
+        https://spacy.io/api/token#attributes
+        """
+        return not (token.is_stop or token.is_punct or token.is_space or token.is_digit)
+
+    def process0(self, text):
+        """
+        spacy doc --> lemmas 
+        """
+        doc = xs.nlp(text)
+        lemmas = [token.lemma_ for token in doc]
+        return lemmas
     
-    def process1(self, text:str):
+    def process1(self, text):
+        """
+        spacy doc --> lemmas 
+        """
+        doc = xs.nlp(text)
+        lemmas = [token.lemma_ for token in doc if self.allowed(token) ]
+        return(lemmas)
+    
+    def process2(self, text):
+        """
+        spacy tokenizer --> lemmas
+        """
+        tokens = xs.tokenizer(text)
+        lemmas = [ token.lemma_ for token in tokens if self.allowed(token) ]
+        return(lemmas)
+
+    def process3(self, text:str):
         """
         spacy lemmatizer --> tokens
         """
         lemmas = xs.lemmatizer(text)
         tokens = [lemma.lemma_ for lemma in lemmas if not lemma.is_stop]
         return(tokens)
-
-    
-    def process2(self, text):
-        """
-        spacy tokenizer --> lemmas
-        """
-
-        tokens = xs.tokenizer(text)
-        lemmas = [ token.lemma_ for token in tokens if not token.is_stop]
-        return(lemmas)
-    

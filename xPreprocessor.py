@@ -1,5 +1,6 @@
 from html import unescape
 import re
+import unicodedata
 
 class xPreprocessor(object):
     def __init__(self):
@@ -22,20 +23,32 @@ class xPreprocessor(object):
 
     def clean(self, text = None) -> str:
         """
-        function order is important
+        - function order is important
+        - the following spoil lemmatization during tokenization process:
+           - punctuation removal
+           - special character removal
+        - can remove numeric in tokenization
         """
         return self.normalize(
             self.clean_double_whitespaces(
-                self.clean_punctuation(
-                    self.clean_web_tags(
-                        self.clean_html_tags(
-                            text
-                        )
-                    )
+                   self.clean_numeric(
+                            self.clean_web_tags(
+                                self.clean_html_tags(
+                                    text
+                                )
+                            )
+                       )
                 )
             )
-        )
 
+    @staticmethod
+    def clean_accented(text):
+        """
+        accented characters/letters are converted and standardized into ASCII characters
+        eg. convert é to e
+        """
+        return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8', 'ignore')
+        
     @staticmethod
     def normalize(text):
         """ lowercase """
@@ -60,3 +73,15 @@ class xPreprocessor(object):
     @staticmethod
     def clean_double_whitespaces(text):
         return re.sub(' +', ' ', text)
+
+    @staticmethod
+    def clean_special_characters(text):
+        """
+        #@ etc
+        """
+        return re.sub(r'[^a-zA-z\s]', '', text)
+
+
+    @staticmethod
+    def clean_numeric(text):
+        return re.sub(r'\b\d+(?:\.\d+)?\s+', '', text)
