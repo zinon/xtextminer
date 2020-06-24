@@ -1,7 +1,6 @@
 from typing import List
 from  xDataProvider import  xDataProvider
 
-
 class xCorpus(object):
     def __init__(self, name:str = None, text:str = None):
         self.__name = name

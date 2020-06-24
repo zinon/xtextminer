@@ -8,7 +8,8 @@ class xTokenizer(object):
 
     def __call__(self, text):
         """
-        tokenize a single string or a list of strings 
+        - tokenize a single string or a list of strings 
+        - called by CountVectorizer, also on stopwords
         """
         if isinstance((text), (str)):
             return self.process(text)

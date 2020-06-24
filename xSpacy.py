@@ -3,11 +3,7 @@ from typing import Dict
 
 
 #class xStopwords():
-    
-#    
-
-    #Printing first ten stop words:
-    
+# TBD    
 
 class xSpacy():
     def __init__(self, library:str = 'small'):

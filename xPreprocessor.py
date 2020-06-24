@@ -37,9 +37,9 @@ class xPreprocessor(object):
                                     text
                                 )
                             )
-                       )
-                )
+                   )
             )
+        )
 
     @staticmethod
     def clean_accented(text):

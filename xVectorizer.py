@@ -1,16 +1,17 @@
 import pandas as pd
 from typing import List
+import scipy
 
 import xCustomVectorizer as xCV
 
 class xVectorizer(object):
-    def __init__(self, data = None):
+    def __init__(self, data_corpora = None):
 
         #to be replaced
         self.__options = { "test": 10 }
 
         #a holder of data
-        self.__data = data
+        self.__data_corpora = data_corpora
 
         #sparse document term matrix (DTM)
         self.__data_matrix = None
@@ -58,11 +59,19 @@ class xVectorizer(object):
         return "{self.__class__.__name__}\n{self.data_frame.to_string()}"
 
     @property
-    def data_matrix(self):
+    def data_corpora(self):
+        return self.__data_corpora
+
+    @data_corpora.setter
+    def data_corpora(self, data = None):
+        self.__data_corpora = data
+    
+    @property
+    def data_matrix(self) -> scipy.sparse.csr.csr_matrix:
         return self.__data_matrix
 
     @property
-    def sparse_term_matrix(self):
+    def data_term_matrix(self) -> scipy.sparse.csr.csr_matrix:
         return self.__data_matrix
 
     @property
@@ -121,6 +130,10 @@ class xVectorizer(object):
         return self.__frequencies
 
     @property
+    def data_frame_tf(self):
+        return self.frequencies
+    
+    @property
     def occurences(self):
         """
         - obtain frequencies from vectorizer
@@ -176,9 +189,9 @@ class xVectorizer(object):
         
     def set_data_names(self, override=False):
         if override:
-            self.__data_names = ['doc{:d}'.format(idx) for idx in enumerate(self.__data.names)]
+            self.__data_names = ['doc{:d}'.format(idx) for idx in enumerate(self.__data_corpora.names)]
         else:
-            self.__data_names = self.__data.names
+            self.__data_names = self.__data_corpora.names
 
     def set_data_array(self):
         if self.__data_matrix.size:
@@ -245,7 +258,7 @@ class xVectorizer(object):
         if not self.__vectorizer:
             self.set_vectorizer()
 
-        self.__data_matrix = self.__vectorizer.fit_transform(raw_documents = self.__data.texts)
+        self.__data_matrix = self.__vectorizer.fit_transform(raw_documents = self.__data_corpora.texts)
 
 
     def transform(self, documents):

@@ -65,10 +65,10 @@ stopwords = xs.stopwords
 custom_vectorizer = CountVectorizer(preprocessor = xPreprocessor(),
                                     tokenizer = xTokenizer(),
                                     #analyzer = analyzer,
-                                    #min_df = min_df,
-                                    #max_df = max_df,
+                                    min_df = min_df,
+                                    max_df = max_df,
                                     stop_words = stopwords,
-                                    #max_features = max_features,
+                                    max_features = max_features,
                                     binary = binary,
                                     lowercase = True,
                                     ngram_range=ngram_range 
