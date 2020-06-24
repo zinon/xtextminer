@@ -195,7 +195,7 @@ class xVectorizer(object):
 
     def set_data_array(self):
         if self.__data_matrix.size:
-            self.__data_array = self.__data_matrix.toarray()
+            self.__data_array = self.__data_matrix.toarray().astype(int)
 
     def set_data_frame(self):
         """
