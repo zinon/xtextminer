@@ -41,6 +41,9 @@ class xVectorizer(object):
 
         #vocabulary
         self.__vocabulary = None
+
+        #stopwords
+        self.__stopwords = None
         
         #vectorizer class
         self.__vectorizer = None
@@ -157,7 +160,17 @@ class xVectorizer(object):
         if not self.__vocabulary:
              self.set_vocabulary()
         return self.__vocabulary
-    
+
+    @property
+    def stopwords(self):
+        """
+        - stopwaords of vectorizer
+        - created uppon request
+        """
+        if not self.__stopwords:
+             self.set_stopwords()
+        return self.__stopwords
+
     def set_feature_names(self):
         self.__feature_names = self.__vectorizer.get_feature_names()
         
@@ -214,10 +227,15 @@ class xVectorizer(object):
     def set_vocabulary(self):
         if self.__vectorizer:
             self.__vocabulary = self.__vectorizer.vocabulary_
+
+    def set_stopwords(self):
+        if self.__vectorizer:
+            self.__stopwords = self.__vectorizer.stop_words_
             
     def set_vectorizer(self):
         self.__vectorizer = xCV.custom_vectorizer
-        
+
+
     def fit_transform(self):
         """ 
         - Learns the vocabulary dictionary  
@@ -243,11 +261,4 @@ class xVectorizer(object):
         self.fit_transform()
         self.__applied = True
 
-    def show_stopwords(self):
-        if not self.applied:
-            print("build model first by calling method 'apply'")
-            return False
-
-        print("Stopwords:", self.__vectorizer.stop_words_)
-        return True
     

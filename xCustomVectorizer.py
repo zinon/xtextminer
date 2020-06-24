@@ -19,7 +19,13 @@ from xSpacy import xSpacy
 
 
 # ignore words that were too rare with MIN_DF
-min_df = 0.10
+# This param causes CountVectorizer to throw away any term that occurs in too few documents
+# (because it won't have any predictive value).
+# By default, it's set to 2, which means all your terms can be thrown away,
+# so you get an empty vocabulary.
+# can use a range 0.0-1.0 as fraction
+# can use an integer 1,2,3 denoting the number of documents
+min_df = 1
 
 #ignore words that are too common with MAX_DF
 max_df = 0.90
