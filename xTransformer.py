@@ -3,18 +3,18 @@ import pandas as pd
 import numpy as np
 import scipy
 
-class xTransformer():
-    def __init__(self,
-                 data_term_matrix = None,
-                 feature_names = None):
+class xTransformer:
+    def __init__(self, vectorizer = None):
 
         #NOTE: keep it central?
+        self.__vectorizer = vectorizer
+        
         #matrix of term/token counts
-        self.__data_term_matrix = data_term_matrix
+        self.__data_term_matrix = self.__vectorizer.data_term_matrix
 
         #NOTE: keep it central?
         #names of features
-        self.__feature_names = feature_names
+        self.__feature_names = self.__vectorizer.feature_names
 
         #transformer instance
         self.__transformer = None
@@ -45,6 +45,9 @@ class xTransformer():
         #generated dataframe of tf-idf weights
         self.__docs_frame_tf_idf = None
 
+        #caching flag for repeated tf-idf calls in the same doc
+        self.__docs_frame_tf_idf_set = False
+        
     @property
     def data_term_matrix(self) -> scipy.sparse.csr.csr_matrix:
         return self.__data_term_matrix
@@ -73,16 +76,11 @@ class xTransformer():
         elif not self.__transformer:
             print("transformer: transformer instance not found")
         else:
-            """
-            self.__data_frame_idf = pd.DataFrame(self.__transformer.idf_,
-                                                 index = self.__feature_names,
-                                                 columns = ["idf_weights"])
-            """
             self.__data_frame_idf = pd.DataFrame( {"feature": self.__feature_names,
-                                                   "idf_weight": self.__transformer.idf_} )
+                                                   "idf": self.__transformer.idf_} )
                                                    
             #sort descending
-            self.__data_frame_idf.sort_values(by=['idf_weight'],
+            self.__data_frame_idf.sort_values(by=['idf'],
                                               ascending=False,
                                               inplace = True)
         
@@ -111,11 +109,11 @@ class xTransformer():
         """
         self.__applied = self.fit()
 
-    def compute_word_counts(self, TMP_CV):
+    def compute_word_counts(self):
         """
         get the word counts for provided documents in a sparse matrix form
         """
-        self.__docs_matrix_word_count = TMP_CV.transform(self.__docs)
+        self.__docs_matrix_word_count = self.__vectorizer.transform(self.__docs)
 
     def transform_word_counts(self):
         """
@@ -126,19 +124,56 @@ class xTransformer():
         """
         self.__docs_matrix_tf_idf = self.__transformer.transform(self.__docs_matrix_word_count)
 
-        docs_array_tf_idf = np.asarray(self.__docs_matrix_tf_idf.mean(axis=0)).ravel().tolist()
 
-        self.__docs_frame_tf_idf = pd.DataFrame({'gram': self.__feature_names,
-                                                 'score': docs_array_tf_idf})
+    @property
+    def df_idf_matrix(self):
+        return self.__docs_matrix_tf_idf
 
-        self.__docs_frame_tf_idf.sort_values(by='score',
-                                      ascending=False,
-                                      inplace = True)
+    def df_idf_dataframe(self, args):
+        """
+        returns dataframe of tf-idf results
+        create and using cached dataframe
+        must check if args are repeated
+        """
+        #if not self.__docs_frame_tf_idf_set:
+        self.set_df_idf_dataframe(args)
+        return self.__docs_frame_tf_idf
+    
+    def set_df_idf_dataframe(self, args):
+        """
+        args:
+          max, min, mean, median, ..
+          sorted, ascending, descending
+        transform scipy.sparse.csr.csr_matrix to pandas dataframe
+        """
+        if not args:
+            self.__docs_frame_tf_idf = pd.DataFrame(self.__docs_matrix_tf_idf.toarray(),
+                                                    columns = self.__feature_names)
+            return True
+            
+        args  = [x.lower() for x in args]
+        if "mean" in args:
+            docs_array_tf_idf = np.asarray(self.__docs_matrix_tf_idf.mean(axis=0)).ravel().tolist()
+        elif "min" in args:
+            docs_array_tf_idf = np.asarray(self.__docs_matrix_tf_idf.min(axis=0)).ravel().tolist()
+        elif "max" in args:
+            docs_array_tf_idf = np.asarray(self.__docs_matrix_tf_idf.max(axis=0)).ravel().tolist()
+        elif "sum" in args:
+            docs_array_tf_idf = np.asarray(self.__docs_matrix_tf_idf.sum(axis=0)).ravel().tolist()
+        else:
+            docs_array_tf_idf = np.asarray(self.__docs_matrix_tf_idf.mean(axis=0)).ravel().tolist()
+            
+        self.__docs_frame_tf_idf = pd.DataFrame({'feature': self.__feature_names,
+                                                 'tf-idf': docs_array_tf_idf})
 
-        print("TMP position")
-        print(self.__docs_frame_tf_idf)
-        
-    def compute_df_idf(self, documents = None, TMP_CV=None):
+        if "sorted" in args:                    
+            ascending = True if "ascending" in args else False
+            self.__docs_frame_tf_idf.sort_values(by='tf-idf',
+                                                 ascending=ascending,
+                                                 inplace = True)
+
+        return True
+    def compute_df_idf(self, documents = None):
         """
         User callable method 
         - generate tf-idf scores for the provided document(s), i.e. compute the tf * idf 
@@ -148,6 +183,9 @@ class xTransformer():
         if documents:
             self.__docs = documents
         
-        self.compute_word_counts(TMP_CV)
+        self.compute_word_counts()
         self.transform_word_counts()
 
+        #cache tf-idf DF only for new iqnuiries
+        #and not for every call of this function
+        self.__docs_frame_tf_idf_set = False

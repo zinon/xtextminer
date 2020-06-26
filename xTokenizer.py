@@ -2,7 +2,7 @@ from xSpacy import xSpacy
 
 xs = xSpacy()
 
-class xTokenizer(object):
+class xTokenizer:
     def __init__(self):
         pass
 

@@ -1,11 +1,21 @@
 from typing import List
 from  xDataProvider import  xDataProvider
 
-class xCorpus(object):
+class xCorpus:
     def __init__(self, name:str = None, text:str = None):
         self.__name = name
         self.__text = text
 
+    def __repr__(self):
+        return f'xCorpus({self.__name}, {self.__text})'
+
+    def __str__(self):
+        return self.description()
+
+    def description(self):
+        return f'{self.__name}: {self.__text}' \
+            if self.__name and self.__text else "None"
+    
     @property
     def name(self):
         return self.__name
@@ -30,8 +40,26 @@ class xCorpora(xDataProvider):
         self.__corpora = list()
         self.__texts = list()
         self.__names = list()
+        self.__new_item_added = False
 
+    def __len__(self):
+        return len(self.__corpora)
+
+    def __str__(self):
+        return '\n'.join([x.description() for x in self.__corpora if x])
+        
+    def __iadd__(self, other):
+        self.__corpora.extend(other.corpora)
+        self.__texts.extend(other.texts)
+        self.__names.extend(other.names)
+        self.notify(True)
+        return self
+
+    def notify(self,x):
+        self.__new_item_added = x
+        
     def add(self, corpus:xCorpus()):
+        self.notify(True)
         self.__corpora.append(corpus)
 
     @property
@@ -44,8 +72,9 @@ class xCorpora(xDataProvider):
         - get list of text
         - created upon request
         """
-        if not self.__texts:
+        if self.__texts == None or self.__new_item_added:
             self.__texts = [ corpus.text for corpus in self.__corpora]
+            self.notify(False)
         return self.__texts
 
     @property
@@ -54,6 +83,7 @@ class xCorpora(xDataProvider):
         - get list of names
         - created upon request
         """
-        if not self.__names:
+        if self.__names == None or self.__new_item_added:
             self.__names = [ corpus.name for corpus in self.__corpora]
+            self.notify(True)
         return self.__names

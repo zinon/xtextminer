@@ -14,8 +14,7 @@ class xTFIDF():
         self.__vectorizer = xVectorizer(data_corpora=self.__data)
         self.__vectorizer.apply()
         #tranform
-        self.__transformer = xTransformer(data_term_matrix = self.__vectorizer.data_term_matrix,
-                                          feature_names = self.__vectorizer.feature_names)
+        self.__transformer = xTransformer(vectorizer = self.__vectorizer)
         
         self.__transformer.apply()
 
@@ -28,5 +27,13 @@ class xTFIDF():
     #NOTE: make it with input arg
     #either with doc label or custome text
     #otherwise consider the entire corpra
-    def tfidf(self):
-        self.__transformer.compute_df_idf(self.__data.texts, self.__vectorizer )
+    def compute_tfidf(self, texts):
+        self.__transformer.compute_df_idf(self.__data.texts)
+
+    def tfidf_matrix(self):
+        return self.__transformer.df_idf_matrix
+
+    def tfidf_dataframe(self, *args):
+        return self.__transformer.df_idf_dataframe(args)
+
+                                       

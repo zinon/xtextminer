@@ -2,7 +2,7 @@ from html import unescape
 import re
 import unicodedata
 
-class xPreprocessor(object):
+class xPreprocessor:
     def __init__(self):
         pass
 

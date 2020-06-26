@@ -5,7 +5,7 @@ from typing import Dict
 #class xStopwords():
 # TBD    
 
-class xSpacy():
+class xSpacy:
     def __init__(self, library:str = 'small'):
         self.__library    = self.set_library(library)
         self.__nlp        = spacy.load(self.__library)

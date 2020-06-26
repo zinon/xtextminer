@@ -4,7 +4,7 @@ import scipy
 
 import xCustomVectorizer as xCV
 
-class xVectorizer(object):
+class xVectorizer:
     def __init__(self, data_corpora = None):
 
         #to be replaced
@@ -212,7 +212,7 @@ class xVectorizer(object):
                 return None
             self.__frequencies = pd.DataFrame( {
                                     "feature":self.feature_names,
-                                    "frequency":sum(self.__data_matrix).toarray()[0],
+                                    "tf":sum(self.__data_matrix).toarray()[0],
             }
             )
             #self.__frequencies.set_index('feature', inplace=True)
@@ -257,9 +257,12 @@ class xVectorizer(object):
         """
         if not self.__vectorizer:
             self.set_vectorizer()
-
-        self.__data_matrix = self.__vectorizer.fit_transform(raw_documents = self.__data_corpora.texts)
-
+        if self.__data_corpora.texts:
+            self.__data_matrix = self.__vectorizer.fit_transform(raw_documents = self.__data_corpora.texts)
+            return False
+        else:
+            print('vectorizer: empty corpora')
+            return True
 
     def transform(self, documents):
         """
@@ -271,7 +274,6 @@ class xVectorizer(object):
         """
         user callable method 
         """
-        self.fit_transform()
-        self.__applied = True
+        self.__applied = self.fit_transform()
 
     
