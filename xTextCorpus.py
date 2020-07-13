@@ -43,7 +43,8 @@ class xCorpora(xDataProvider):
         self.__corpora = list()
         self.__texts = list()
         self.__names = list()
-        self.__new_item_added = False
+        self.__new_item_added_cache_texts = False
+        self.__new_item_added_cache_names = False
 
     def __len__(self):
         return len(self.__corpora)
@@ -55,7 +56,7 @@ class xCorpora(xDataProvider):
         self.__corpora.extend(other.corpora)
         self.__texts.extend(other.texts)
         self.__names.extend(other.names)
-        self.notify(True)
+        self.notify(texts=True, names=True)
         return self
 
     def __getitem__(self, index):
@@ -76,11 +77,16 @@ class xCorpora(xDataProvider):
         return None
         
     
-    def notify(self,x):
-        self.__new_item_added = x
-        
+    def notify(self, **kwargs):
+        if 'texts' in kwargs:
+            self.__new_item_added_cache_texts = kwargs['texts']
+
+        if 'names' in kwargs:
+            self.__new_item_added_cache_names = kwargs['names']
+
+            
     def add(self, corpus:xCorpus()):
-        self.notify(True)
+        self.notify(texts=True, names=True)
         self.__corpora.append(corpus)
 
     @property
@@ -93,9 +99,9 @@ class xCorpora(xDataProvider):
         - get list of text
         - created upon request
         """
-        if self.__texts == None or self.__new_item_added:
+        if self.__texts is None or self.__new_item_added_cache_texts:
             self.__texts = [ corpus.text for corpus in self.__corpora]
-            self.notify(False)
+            self.notify(texts=False)
         return self.__texts
 
     @property
@@ -104,7 +110,7 @@ class xCorpora(xDataProvider):
         - get list of names
         - created upon request
         """
-        if self.__names == None or self.__new_item_added:
-            self.__names = [ corpus.name for corpus in self.__corpora]
-            self.notify(True)
+        if self.__names is None or self.__new_item_added_cache_names:
+            self.__names = [corpus.name for corpus in self.__corpora]
+            self.notify(names=False)
         return self.__names

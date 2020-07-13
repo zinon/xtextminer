@@ -52,8 +52,9 @@ class xTFIDF():
         else:       
             self.__transformer.compute_df_idf(self.__corpora.texts)
 
-        #pipe sparse matrix to xSimilarities
-        self.__similarity.matrix = self.__transformer.df_idf_matrix
+        #pipe sparse matrix and doc names to xSimilarities
+        self.__similarity.matrix_and_names(  self.__transformer.df_idf_matrix,
+                                             self.__corpora.names)
         
     def tfidf_matrix(self):
         return self.__transformer.df_idf_matrix
@@ -64,3 +65,12 @@ class xTFIDF():
 
     def tfidf_cosine_similarity_array(self):
         return self.__similarity.cosine_similarity_array
+
+    def tfidf_angle_similarity_array(self):
+        return self.__similarity.angle_similarity_array
+    
+    def tfidf_angle_similarity_dataframe(self):
+        return self.__similarity.angle_similarity_dataframe
+
+    def tfidf_angle_similarity(self, idx1 = None, idx2 = None):
+        return self.__similarity.angle_similarity(idx1, idx2)

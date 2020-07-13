@@ -46,3 +46,6 @@ print(xdf.tfidf_dataframe("mean", "sorted", "descending"))
 print(xdf.tfidf_dataframe())
 
 print(xdf.tfidf_cosine_similarity_array())
+print(xdf.tfidf_angle_similarity_array())
+print(xdf.tfidf_angle_similarity_dataframe())
+print(xdf.tfidf_angle_similarity('doc1', 'doc2'))
