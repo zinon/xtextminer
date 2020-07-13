@@ -228,7 +228,7 @@ class xVectorizer:
                                           np.asarray(self.__data_matrix.sum(axis=0)).ravel().tolist()})
         self.__occurences.sort_values(by='occurrences', ascending=False, inplace = True)
                                          
-    def set_sparity(self):
+    def set_sparsity(self):
         if self.__data_matrix.size:
             self.__sparsity = self.__data_matrix.nnz /\
                 (self.__data_matrix.shape[0] * self.__data_matrix.shape[1]) 
@@ -245,18 +245,18 @@ class xVectorizer:
         if self.__vectorizer:
             self.__stopwords = self.__vectorizer.stop_words_
             
-    def set_vectorizer(self):
+    def __set_vectorizer(self):
         self.__vectorizer = xCV.custom_vectorizer
 
 
-    def fit_transform(self):
+    def __fit_transform(self):
         """ 
         - Learns the vocabulary dictionary  
-        - Creates a document-term matrix (DTM) of shape (n_samples, n_features)
+        - Creates a document-term matrix (DTM) of shape (n_samples, m_features)
         - instantiates and caches the vectorizer 
         """
         if not self.__vectorizer:
-            self.set_vectorizer()
+            self.__set_vectorizer()
         if self.__data_corpora.texts:
             self.__data_matrix = self.__vectorizer.fit_transform(raw_documents = self.__data_corpora.texts)
             return False
@@ -267,13 +267,14 @@ class xVectorizer:
     def transform(self, documents):
         """
         Transform documents to document-term matrix.
+        User callable method 
         """
         return self.__vectorizer.transform(raw_documents = documents)
                                    
     def apply(self):
         """
-        user callable method 
+        User callable method 
         """
-        self.__applied = self.fit_transform()
+        self.__applied = self.__fit_transform()
 
     

@@ -12,6 +12,9 @@ class xCorpus:
     def __str__(self):
         return self.description()
 
+    def __eq__(self, other):
+        return self.name == other.name and self.text == other.text
+    
     def description(self):
         return f'{self.__name}: {self.__text}' \
             if self.__name and self.__text else "None"
@@ -47,7 +50,7 @@ class xCorpora(xDataProvider):
 
     def __str__(self):
         return '\n'.join([x.description() for x in self.__corpora if x])
-        
+    
     def __iadd__(self, other):
         self.__corpora.extend(other.corpora)
         self.__texts.extend(other.texts)
@@ -55,6 +58,24 @@ class xCorpora(xDataProvider):
         self.notify(True)
         return self
 
+    def __getitem__(self, index):
+        if isinstance(index, int):
+            try:
+                return self.__corpora[index]
+            except IndexError:
+                return None
+        elif isinstance(index, str):
+            for corpus in self.__corpora:
+                if corpus.name == index:
+                    return corpus
+        elif isinstance(index, xCorpus):
+            for corpus in self.__corpora:
+                if corpus == index:
+                    return corpus
+                
+        return None
+        
+    
     def notify(self,x):
         self.__new_item_added = x
         

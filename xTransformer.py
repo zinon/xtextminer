@@ -109,21 +109,6 @@ class xTransformer:
         """
         self.__applied = self.fit()
 
-    def compute_word_counts(self):
-        """
-        get the word counts for provided documents in a sparse matrix form
-        """
-        self.__docs_matrix_word_count = self.__vectorizer.transform(self.__docs)
-
-    def transform_word_counts(self):
-        """
-        Transform a count matrix to a tf or tf-idf representation
-        Get back a sparse matrix of shape (n_samples, n_features)
-        Create a dataframe
-        Sort grams by tf-idf score
-        """
-        self.__docs_matrix_tf_idf = self.__transformer.transform(self.__docs_matrix_word_count)
-
 
     @property
     def df_idf_matrix(self):
@@ -133,14 +118,18 @@ class xTransformer:
         """
         returns dataframe of tf-idf results
         create and using cached dataframe
-        must check if args are repeated
+       
+        Note: must check if args are repeated
         """
         #if not self.__docs_frame_tf_idf_set:
         self.set_df_idf_dataframe(args)
         return self.__docs_frame_tf_idf
-    
+
     def set_df_idf_dataframe(self, args):
         """
+        Create a dataframe
+        Sort grams by tf-idf score
+
         args:
           max, min, mean, median, ..
           sorted, ascending, descending
@@ -173,6 +162,21 @@ class xTransformer:
                                                  inplace = True)
 
         return True
+
+    def compute_word_counts(self):
+        """
+        Get the word counts for provided documents in a sparse matrix form
+        Use xVectorizer
+        """
+        self.__docs_matrix_word_count = self.__vectorizer.transform(self.__docs)
+
+    def transform_word_counts(self):
+        """
+        Transform a count matrix to a tf or tf-idf representation using xTransformer
+        Get back a sparse matrix of shape (n_samples, n_features)
+        """
+        self.__docs_matrix_tf_idf = self.__transformer.transform(self.__docs_matrix_word_count)
+    
     def compute_df_idf(self, documents = None):
         """
         User callable method 
@@ -180,12 +184,27 @@ class xTransformer:
         - when called as df_idf(something), then 
         - when called as df_idf(), then uses cached result
         """
-        if documents:
-            self.__docs = documents
-        
+        if not documents:
+            print('compute_df_idf: empty input')
+            return False
+
+        #check input type first - ensure it's a list
+        if isinstance(documents, list):
+            if all(isinstance(doc, str) for doc in documents):                
+                self.__docs = documents
+            else:
+                print('compute_df_idf: not a pure list of string objects')
+                return False
+        elif isinstance(documents, str):
+            self.__docs = [documents]
+            
+
+        #actual computation
         self.compute_word_counts()
         self.transform_word_counts()
 
         #cache tf-idf DF only for new iqnuiries
         #and not for every call of this function
         self.__docs_frame_tf_idf_set = False
+
+        return True
