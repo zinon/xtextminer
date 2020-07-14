@@ -24,9 +24,11 @@ class xTFIDF():
         
         self.__transformer.apply()
 
+        #similarity
         self.__similarity = xSimilarity()
 
-        self.__representation = xRepresentation()
+        #dimensionality reduction & representation
+        self.__representation = xRepresentation(clusters=2, components=2)
         
     def tf(self):
         return self.__vectorizer.data_frame_tf
