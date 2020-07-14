@@ -1,6 +1,7 @@
 from xVectorizer import xVectorizer
 from xTransformer import xTransformer
 from xSimilarity import xSimilarity
+from xRepresentation import xRepresentation
 
 class xTFIDF():
     def __init__(self, corpora = None):
@@ -11,7 +12,8 @@ class xTFIDF():
         self.__transformer = None
 
         self.__similarities = None
-        
+
+        self.__representation =  None
     def apply(self):
         #vectorize
         self.__vectorizer = xVectorizer(data_corpora=self.__corpora)
@@ -23,6 +25,8 @@ class xTFIDF():
         self.__transformer.apply()
 
         self.__similarity = xSimilarity()
+
+        self.__representation = xRepresentation()
         
     def tf(self):
         return self.__vectorizer.data_frame_tf
@@ -53,8 +57,10 @@ class xTFIDF():
             self.__transformer.compute_df_idf(self.__corpora.texts)
 
         #pipe sparse matrix and doc names to xSimilarities
-        self.__similarity.matrix_and_names(  self.__transformer.df_idf_matrix,
-                                             self.__corpora.names)
+        self.__similarity.matrix_and_names( self.__transformer.df_idf_matrix,
+                                            self.__corpora.names)
+
+        self.__representation.matrix = self.__transformer.df_idf_matrix
         
     def tfidf_matrix(self):
         return self.__transformer.df_idf_matrix
@@ -74,3 +80,6 @@ class xTFIDF():
 
     def tfidf_angle_similarity(self, idx1 = None, idx2 = None):
         return self.__similarity.angle_similarity(idx1, idx2)
+
+    def represent(self):
+        self.__representation.fit()

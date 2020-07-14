@@ -5,6 +5,7 @@ xc.add( xCorpus(name='doc1', text='The   quickest brown fox&#x0002E;') )
 xc.add( xCorpus(name='doc2', text="jumped over the lazy dog's back&#x00021; It's brown and shouldn't") )
 xc.add( xCorpus(name='doc3', text='<div class="a div class"> The brown class </div>') )
 xc.add( xCorpus(name='doc4', text="I'm jumping while he's lying. We've got 400 brown cases.") )
+#xc.add( xCorpus(name='doc4', text="Cannot add a corpus with a name existing already!") )
 print("xc length", len(xc))
 
 
@@ -49,3 +50,5 @@ print(xdf.tfidf_cosine_similarity_array())
 print(xdf.tfidf_angle_similarity_array())
 print(xdf.tfidf_angle_similarity_dataframe())
 print(xdf.tfidf_angle_similarity('doc1', 'doc2'))
+
+xdf.represent()

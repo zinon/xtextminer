@@ -56,7 +56,7 @@ class xCorpora(xDataProvider):
         self.__corpora.extend(other.corpora)
         self.__texts.extend(other.texts)
         self.__names.extend(other.names)
-        self.notify(texts=True, names=True)
+        self.__notify(texts=True, names=True)
         return self
 
     def __getitem__(self, index):
@@ -77,17 +77,15 @@ class xCorpora(xDataProvider):
         return None
         
     
-    def notify(self, **kwargs):
+    def __notify(self, **kwargs):
+        """
+        Notify actions for caching
+        """
         if 'texts' in kwargs:
             self.__new_item_added_cache_texts = kwargs['texts']
 
         if 'names' in kwargs:
             self.__new_item_added_cache_names = kwargs['names']
-
-            
-    def add(self, corpus:xCorpus()):
-        self.notify(texts=True, names=True)
-        self.__corpora.append(corpus)
 
     @property
     def corpora(self) -> List[xCorpus]:
@@ -101,7 +99,7 @@ class xCorpora(xDataProvider):
         """
         if self.__texts is None or self.__new_item_added_cache_texts:
             self.__texts = [ corpus.text for corpus in self.__corpora]
-            self.notify(texts=False)
+            self.__notify(texts=False)
         return self.__texts
 
     @property
@@ -112,5 +110,14 @@ class xCorpora(xDataProvider):
         """
         if self.__names is None or self.__new_item_added_cache_names:
             self.__names = [corpus.name for corpus in self.__corpora]
-            self.notify(names=False)
+            self.__notify(names=False)
         return self.__names
+
+    def add(self, corpus:xCorpus()):
+        """
+        User callable function to add new corpora
+        """
+        if corpus.name in self.names:
+            raise ValueError("Cannot add corpus with existing name '{}'".format(corpus.name))
+        self.__notify(texts=True, names=True)
+        self.__corpora.append(corpus)
