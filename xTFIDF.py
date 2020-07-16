@@ -59,10 +59,11 @@ class xTFIDF():
             self.__transformer.compute_df_idf(self.__corpora.texts)
 
         #pipe sparse matrix and doc names to xSimilarities
-        self.__similarity.matrix_and_names( self.__transformer.df_idf_matrix,
-                                            self.__corpora.names)
+        self.__similarity.matrix_and_corpora_names( self.__transformer.df_idf_matrix,
+                                                    self.__corpora.names)
 
-        self.__representation.matrix = self.__transformer.df_idf_matrix
+        self.__representation.matrix_and_feature_names( self.__transformer.df_idf_matrix,
+                                                        self.__vectorizer.feature_names)
         
     def tfidf_matrix(self):
         return self.__transformer.df_idf_matrix

@@ -25,7 +25,7 @@ class xSimilarity:
         self.__angle_similarity_array = None
         self.__angle_similarity_dataframe = None
 
-    def matrix_and_names(self, matrix = None, names = None):
+    def matrix_and_corpora_names(self, matrix = None, names = None):
         if matrix.size:
             self.__matrix = matrix
         if names:

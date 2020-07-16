@@ -11,7 +11,9 @@ print("xc length", len(xc))
 
 
 xc2 = xCorpora("tryme")
-xc2.add( xCorpus(name='doc5', text='The yellow wolf') )
+xc2.add( xCorpus(name='doc5', text='The yellow wolf lives in the forest') )
+xc2.add( xCorpus(name='doc6', text='Yellow wolf, brown fox, gray dog are all animals') )
+xc2.add( xCorpus(name='doc7', text='Lazy students sitting in the class') )
 print("xc2", len(xc2))
 
 xc += xc2

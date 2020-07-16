@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import scipy
 
+
 class xTransformer:
     def __init__(self, vectorizer = None):
 
@@ -57,7 +58,7 @@ class xTransformer:
         self.__data_term_matrix = matrix
     
     @property
-    def data_frame_idf(self):
+    def data_frame_idf(self) -> pd.DataFrame():
         """
         - transform the idf matrix into panda data_frame 
         - created uppon request
@@ -65,6 +66,10 @@ class xTransformer:
         if not self.__data_frame_idf:
             self.set_data_frame_idf()
         return self.__data_frame_idf
+
+    @property
+    def df_idf_matrix(self) -> scipy.sparse.csr.csr_matrix:
+        return self.__docs_matrix_tf_idf
 
     def set_data_frame_idf(self):
         """
@@ -109,10 +114,6 @@ class xTransformer:
         """
         self.__applied = self.fit()
 
-
-    @property
-    def df_idf_matrix(self):
-        return self.__docs_matrix_tf_idf
 
     def df_idf_dataframe(self, args):
         """
@@ -174,9 +175,10 @@ class xTransformer:
         """
         Transform a count matrix to a tf or tf-idf representation using xTransformer
         Get back a sparse matrix of shape (n_samples, n_features)
+        Matrix type: scipy.sparse.csr.csr_matrix
         """
         self.__docs_matrix_tf_idf = self.__transformer.transform(self.__docs_matrix_word_count)
-    
+        
     def compute_df_idf(self, documents = None):
         """
         User callable method 
