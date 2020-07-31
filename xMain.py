@@ -52,5 +52,11 @@ print(xdf.tfidf_cosine_similarity_array())
 print(xdf.tfidf_angle_similarity_array())
 print(xdf.tfidf_angle_similarity_dataframe())
 print(xdf.tfidf_angle_similarity('doc1', 'doc2'))
+print(xdf.tfidf_most_similar('doc1'))
 
 xdf.represent()
+
+print(xdf.clustered_terms_dataframe())
+print(xdf.corpus_cluster('doc5'))
+print(xdf.cluster_corpora(1))
+

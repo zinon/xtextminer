@@ -55,13 +55,15 @@ class xSimilarity:
             print('angle_similarity: empty corpora names list')
             return None
 
+        #string index
         if isinstance(idx1, str):
             try:
                 idx1 = self.__corpora_names.index(idx1)
             except ValueError:
                 print(f"angle_similarity: invalid index '{idx1}'")
                 return None
-            
+
+        #string index
         if isinstance(idx2, str):
             try:
                 idx2 = self.__corpora_names.index(idx2)
@@ -70,7 +72,17 @@ class xSimilarity:
                 return None
 
         return self.angle_similarity_array.item((idx1, idx2))
-    
+
+    def most_similar(self, idx:str):
+        """
+        select column based on document index name
+        sort by tf-idf
+        drop self-element
+        return most similar document and score
+        """
+        series=self.angle_similarity_dataframe[idx].sort_values(ascending=False).drop(idx)
+        return series.index[0], series[0]
+        
     @staticmethod
     def __cosine_to_degrees(x):
         return np.nan_to_num(np.degrees(np.arccos(x)))
@@ -94,3 +106,5 @@ class xSimilarity:
         self.__angle_similarity_dataframe = pd.DataFrame(data=self.angle_similarity_array,
                                                          index = self.__corpora_names,
                                                          columns = self.__corpora_names)
+
+

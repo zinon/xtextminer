@@ -50,26 +50,31 @@ class xTFIDF():
         """
 
         if 'text' in kwargs:
-            self.__transformer.compute_df_idf(kwargs['text'])
+            self.__transformer.compute_tf_idf(kwargs['text'])
         elif 'name' in kwargs:
-            self.__transformer.compute_df_idf( self.__corpora[kwargs['name']].text )
+            self.__transformer.compute_tf_idf( self.__corpora[kwargs['name']].text )
         elif 'index' in kwargs:
-            self.__transformer.compute_df_idf( self.__corpora[kwargs['index']].text )
+            self.__transformer.compute_tf_idf( self.__corpora[kwargs['index']].text )
         else:       
-            self.__transformer.compute_df_idf(self.__corpora.texts)
+            self.__transformer.compute_tf_idf(self.__corpora.texts)
 
         #pipe sparse matrix and doc names to xSimilarities
-        self.__similarity.matrix_and_corpora_names( self.__transformer.df_idf_matrix,
+        self.__similarity.matrix_and_corpora_names( self.__transformer.tf_idf_matrix,
                                                     self.__corpora.names)
 
-        self.__representation.matrix_and_feature_names( self.__transformer.df_idf_matrix,
-                                                        self.__vectorizer.feature_names)
+        self.__representation.matrix = self.__transformer.tf_idf_matrix
+
+        self.__representation.corpora_names = self.__corpora.names
+
+        self.__representation.feature_names = self.__vectorizer.feature_names
+
+        self.__representation.set_data_frame_tfidf( self.__transformer.tf_idf_dataframe(args=None))
         
     def tfidf_matrix(self):
-        return self.__transformer.df_idf_matrix
+        return self.__transformer.tf_idf_matrix
 
     def tfidf_dataframe(self, *args):
-        return self.__transformer.df_idf_dataframe(args)
+        return self.__transformer.tf_idf_dataframe(args=args)
 
 
     def tfidf_cosine_similarity_array(self):
@@ -84,5 +89,18 @@ class xTFIDF():
     def tfidf_angle_similarity(self, idx1 = None, idx2 = None):
         return self.__similarity.angle_similarity(idx1, idx2)
 
+    def tfidf_most_similar(self, idx:str=None):
+        return self.__similarity.most_similar(idx)
+    
     def represent(self):
         self.__representation.fit()
+
+    def clustered_terms_dataframe(self):
+        return self.__representation.clustered_terms_dataframe
+
+    def corpus_cluster(self, corpus_name:str):
+        return self.__representation.corpus_cluster(corpus_name)
+
+    def cluster_corpora(self, cluster:int):
+        return self.__representation.cluster_corpora(cluster)
+    

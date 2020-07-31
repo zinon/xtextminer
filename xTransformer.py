@@ -68,7 +68,7 @@ class xTransformer:
         return self.__data_frame_idf
 
     @property
-    def df_idf_matrix(self) -> scipy.sparse.csr.csr_matrix:
+    def tf_idf_matrix(self) -> scipy.sparse.csr.csr_matrix:
         return self.__docs_matrix_tf_idf
 
     def set_data_frame_idf(self):
@@ -115,7 +115,7 @@ class xTransformer:
         self.__applied = self.fit()
 
 
-    def df_idf_dataframe(self, args):
+    def tf_idf_dataframe(self, args):
         """
         returns dataframe of tf-idf results
         create and using cached dataframe
@@ -123,18 +123,22 @@ class xTransformer:
         Note: must check if args are repeated
         """
         #if not self.__docs_frame_tf_idf_set:
-        self.set_df_idf_dataframe(args)
+        self.set_tf_idf_dataframe(args)
         return self.__docs_frame_tf_idf
 
-    def set_df_idf_dataframe(self, args):
+    def set_tf_idf_dataframe(self, args=None):
         """
         Create a dataframe
         Sort grams by tf-idf score
+        Transform scipy.sparse.csr.csr_matrix to pandas dataframe
 
         args:
           max, min, mean, median, ..
           sorted, ascending, descending
-        transform scipy.sparse.csr.csr_matrix to pandas dataframe
+
+        no args:
+          return complete sparse matrix as dataframe
+
         """
         if not args:
             self.__docs_frame_tf_idf = pd.DataFrame(self.__docs_matrix_tf_idf.toarray(),
@@ -179,15 +183,15 @@ class xTransformer:
         """
         self.__docs_matrix_tf_idf = self.__transformer.transform(self.__docs_matrix_word_count)
         
-    def compute_df_idf(self, documents = None):
+    def compute_tf_idf(self, documents = None):
         """
         User callable method 
         - generate tf-idf scores for the provided document(s), i.e. compute the tf * idf 
-        - when called as df_idf(something), then 
-        - when called as df_idf(), then uses cached result
+        - when called as tf_idf(something), then 
+        - when called as tf_idf(), then uses cached result
         """
         if not documents:
-            print('compute_df_idf: empty input')
+            print('compute_tf_idf: empty input')
             return False
 
         #check input type first - ensure it's a list
@@ -195,7 +199,7 @@ class xTransformer:
             if all(isinstance(doc, str) for doc in documents):                
                 self.__docs = documents
             else:
-                print('compute_df_idf: not a pure list of string objects')
+                print('compute_tf_idf: not a pure list of string objects')
                 return False
         elif isinstance(documents, str):
             self.__docs = [documents]
