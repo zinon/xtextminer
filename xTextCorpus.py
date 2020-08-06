@@ -113,7 +113,7 @@ class xCorpora(xDataProvider):
             self.__notify(names=False)
         return self.__names
 
-    def add(self, corpus:xCorpus()):
+    def add(self, corpus:xCorpus(), position:int = None):
         """
         User callable function to add new corpora
         """

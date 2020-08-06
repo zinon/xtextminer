@@ -1,14 +1,16 @@
 from xSpacy import xSpacy
+import re
 
 xs = xSpacy()
 
 class xTokenizer:
     def __init__(self):
-        pass
+        self.__digits = re.compile('\d')
 
     def __call__(self, text):
         """
-        - tokenize a single string or a list of strings 
+        - tokenize a single string or a list of strings
+        - allow tokens/words
         - called by CountVectorizer, also on stopwords
         """
         if isinstance((text), (str)):
@@ -25,11 +27,22 @@ class xTokenizer:
     def process(self, text:str):
         return self.process1(text)
 
+    def contains_digits(text:str):
+        """
+        identify if string contains digits
+        """
+        return bool(self.___digits.search(text))
+
     def allowed(self, token):
         """
         https://spacy.io/api/token#attributes
         """
-        return not (token.is_stop or token.is_punct or token.is_space or token.is_digit)
+        return not (token.is_stop or \
+                    token.like_num or \
+                    token.is_punct or \
+                    token.is_space or \
+                    token.is_digit or \
+                    len(token)==1)
 
     def process0(self, text):
         """

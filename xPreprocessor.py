@@ -1,6 +1,7 @@
 from html import unescape
 import re
 import unicodedata
+import string
 
 class xPreprocessor:
     def __init__(self):
@@ -31,16 +32,48 @@ class xPreprocessor:
         """
         return self.normalize(
             self.clean_double_whitespaces(
-                   self.clean_numeric(
-                            self.clean_web_tags(
-                                self.clean_html_tags(
+                self.clean_edge_special_chars(
+                    self.clean_numeric(
+                        self.clean_web_tags(
+                            self.clean_html_tags(
+                                self.clean_non_ascii(
                                     text
                                 )
                             )
-                   )
+                        )
+                    )
+                )
             )
         )
 
+    @staticmethod
+    def clean_edge_special_chars(text:str):
+        """
+        clean string edges 
+        """
+        return text.strip(string.punctuation)
+    
+    @staticmethod
+    def clean_special_chars(text:str):
+        """
+        clean string edges 
+        """
+        return text.translate(str.maketrans('', '', string.punctuation))
+
+    @staticmethod
+    def clean_special_characters(text):
+        """
+        #@ etc
+        """
+        return re.sub(r'[^a-zA-z\s]', '', text)
+    
+    @staticmethod
+    def clean_non_ascii(text:str):
+        """
+        replace non-ascii symbols with space
+        """
+        return re.sub(r'[^\x00-\x7F]+',' ', text)
+        
     @staticmethod
     def clean_accented(text):
         """
@@ -73,14 +106,6 @@ class xPreprocessor:
     @staticmethod
     def clean_double_whitespaces(text):
         return re.sub(' +', ' ', text)
-
-    @staticmethod
-    def clean_special_characters(text):
-        """
-        #@ etc
-        """
-        return re.sub(r'[^a-zA-z\s]', '', text)
-
 
     @staticmethod
     def clean_numeric(text):
