@@ -24,6 +24,7 @@ class xPreprocessor:
 
     def clean(self, text = None) -> str:
         """
+        Cleaning text, not tokens
         - function order is important
         - the following spoil lemmatization during tokenization process:
            - punctuation removal
@@ -32,7 +33,7 @@ class xPreprocessor:
         """
         return self.normalize(
             self.clean_double_whitespaces(
-                self.clean_edge_special_chars(
+                self.clean_edge_punctuation(
                     self.clean_numeric(
                         self.clean_web_tags(
                             self.clean_html_tags(
@@ -47,14 +48,14 @@ class xPreprocessor:
         )
 
     @staticmethod
-    def clean_edge_special_chars(text:str):
+    def clean_edge_punctuation(text:str):
         """
         clean string edges 
         """
         return text.strip(string.punctuation)
     
     @staticmethod
-    def clean_special_chars(text:str):
+    def clean_punctuation(text:str):
         """
         clean string edges 
         """
@@ -105,6 +106,9 @@ class xPreprocessor:
     
     @staticmethod
     def clean_double_whitespaces(text):
+        """
+         re.sub(r"\s+"," ", text, flags = re.I)
+        """
         return re.sub(' +', ' ', text)
 
     @staticmethod
