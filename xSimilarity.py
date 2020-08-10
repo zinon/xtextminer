@@ -10,7 +10,9 @@ class xSimilarity:
         self.__cosine_similarity_array = None
         self.__angle_similarity_array = None
         self.__angle_similarity_dataframe = None
-
+        #below this threshold, angles will be set to zero
+        self.__angle_epsilon = 1e-3
+        
     @property
     def matrix(self):
         return self.__matrix
@@ -99,7 +101,7 @@ class xSimilarity:
         #from scipy import sparse
         #m = sparse.csr_matrix()
         self.__angle_similarity_array = self.__cosine_to_degrees(self.cosine_similarity_array)
-
+        self.__angle_similarity_array[self.__angle_similarity_array < self.__angle_epsilon] = 0
 
     def __set_angle_similarity_dataframe(self):
         print(self.__corpora_names)

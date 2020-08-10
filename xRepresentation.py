@@ -16,7 +16,6 @@ class xRepresentation:
     """
     def __init__(self, **kwargs):
         self.__clusters = kwargs.get('clusters', 2)
-        print("hELLO", self.__clusters)
         self.__pca_components = kwargs.get('pca_components', 3)
         self.__components = kwargs.get('components', 2)
         self.__kmeans_max_iter = kwargs.get('kmeans_max_iter', 300)
@@ -26,9 +25,13 @@ class xRepresentation:
         #sparse matrix
         self.__matrix = None
         #tf-idf dataframe
-        self.__data_frame_tfidf = pd.DataFrame()
+        self.__tfidf_dataframe = pd.DataFrame()
         self.__corpora_names = None
         self.__feature_names = None
+
+        #angular similarity
+        self.__tfidf_angle_similarity_dataframe = pd.DataFrame()
+        
         #clustered terms
         self.__clustered_terms_dataframe = pd.DataFrame()
 
@@ -81,17 +84,14 @@ class xRepresentation:
         if matrix.size:
             self.__matrix = matrix.todense()
 
-    #@property
-    #def data_frame_tfidf(self) -> pd.DataFrame():
-    #    return self.__data_frame_tfidf
+    @property
+    def tfidf_dataframe(self) -> pd.DataFrame():
+        return self.__tfidf_dataframe
 
-    #@data_frame_tfidf.setter
-    #def data_frame_tfidf(self, df:pd.DataFrame() = None):
-    #    self.__data_frame_tfidf = df
+    @tfidf_dataframe.setter
+    def tfidf_dataframe(self, df:pd.DataFrame() = None):
+        self.__tfidf_dataframe = df
 
-    def set_data_frame_tfidf(self, df:pd.DataFrame()):
-        self.__data_frame_tfidf = df
-        
     @property
     def corpora_names(self) -> List[str]:
         return self.__corpora_names
@@ -110,6 +110,14 @@ class xRepresentation:
         if names:
             self.__feature_names = names
 
+    @property
+    def tfidf_angle_similarity_dataframe(self):
+        return self.__tfidf_angle_similarity_dataframe
+    
+    @tfidf_angle_similarity_dataframe.setter
+    def tfidf_angle_similarity_dataframe(self, df:pd.DataFrame() = None):
+        self.__tfidf_angle_similarity_dataframe = df
+            
     @property
     def clustered_terms_dataframe(self):
         if self.__none_clustered_terms_dataframe():
@@ -195,7 +203,7 @@ class xRepresentation:
         #CONSIDER TOP N TERMS ONLY: N! / (2! (N-2)!)
         n_selected_columns = 4
 
-        print("TF-IDF DF", self.__data_frame_tfidf.shape)
+        print("TF-IDF DF", self.__tfidf_dataframe.shape)
         print("Sparse matrix", self.__matrix.shape)
 
         ##Note: to avoid "ValueError: Masked arrays must be 1-D"
@@ -243,27 +251,43 @@ class xRepresentation:
 
         #
         #feature names; before adding cluster information to the df
-        column_names = self.__data_frame_tfidf.columns.tolist()
-        #print(self.__data_frame_tfidf);exit(1)
+        column_names = self.__tfidf_dataframe.columns.tolist()
+        #print(self.__tfidf_dataframe);exit(1)
         
         n_column_names = len(column_names)
         #clusters
-        self.__data_frame_tfidf['cluster'] = self.__kmeans_labels
+        self.__tfidf_dataframe['cluster'] = self.__kmeans_labels
 
         selected_column_names = column_names[:n_selected_columns]
-        for iname, jname in zip(selected_column_names, selected_column_names[1:]):
 
+        #sns.set()
+        cmap = sns.cubehelix_palette(dark=.3, light=.8, as_cmap=True)
+        for iname, jname in zip(selected_column_names, selected_column_names[1:]):
+            print(f"kmeans cluster {iname} {jname}")
+            
             fig = plt.figure(figsize=(10,7))
             ax = fig.add_subplot(111)
             ax.set_title(f'TF-IDF ({n_selected_columns} selected documents)')
 
-            sns.lmplot(data=self.__data_frame_tfidf,
-                       x=iname,
-                       y=jname,
-                       hue='cluster',
-                       fit_reg=False, legend=True, legend_out=True)
-                       
+            #lm = sns.lmplot(data=self.__tfidf_dataframe,
+            #            x=iname,
+            #            y=jname,
+            #            hue='cluster',
+            #            fit_reg=False, legend=True, legend_out=True)
 
+            ax = sns.scatterplot(x=iname,
+                                 y=jname,
+                                 hue='cluster',
+                                 size='cluster',
+                                 #palette='Set2',
+                                 palette=cmap,
+                                 data=self.__tfidf_dataframe,
+                                 ax=ax)
+
+            #self.__tfidf_dataframe.groupby("cluster").scatter(x=iname,
+            #                                                   y=jname,
+            #                                                   marker="o",
+            #                                                   ax=ax)
             ax.set_xlabel(iname)
             ax.set_ylabel(jname)
             ax.legend(loc="best")
@@ -277,7 +301,7 @@ class xRepresentation:
                              s=300,
                              cmap='viridis')
 
-        xscatter = self.__data_frame_tfidf.plot(kind='scatter',
+        xscatter = self.__tfidf_dataframe.plot(kind='scatter',
                                           x=column_names[0],
                                           y=column_names[1],
                                           alpha=0.1,
@@ -318,7 +342,7 @@ class xRepresentation:
             #            c = self.__kmeans_clusters_pred) 
 
             for icluster in range(self.__clusters):
-                print("CLUS", icluster,self.__clusters)
+                print(f"Cluster {icluster}/{self.__clusters}")
                 ax.scatter(np.array(pca_data2d[y==icluster, i]),
                            np.array(pca_data2d[y==icluster, j]),
                            s = 100,
@@ -428,16 +452,16 @@ class xRepresentation:
 
     def __display_tfidf(self):
 
-        print('Total')
-        print(self.__data_frame_tfidf)
+        print('TF-IDF matrix')
+        print(self.__tfidf_dataframe)
 
         #aggregations and ascending order
         estimates = {'mean':False, 'sum':False, 'max':False}
         #print(list(estimates.keys()))
         #print(estimates.values())
 
-        #df = self.__data_frame_tfidf.mean(axis=0)
-        df = self.__data_frame_tfidf.agg(list(estimates.keys())).T
+        #df = self.__tfidf_dataframe.mean(axis=0)
+        df = self.__tfidf_dataframe.agg(list(estimates.keys())).T
 
         df = df.sort_values(by = list(estimates.keys()),
                             ascending = list(estimates.values()))
@@ -457,15 +481,29 @@ class xRepresentation:
                                        fontsize=12)
         ax.set_xlabel("term", fontsize=12)
         ax.set_ylabel("score", fontsize=12)
+        plt.xticks(rotation=30, ha='right')
         plt.show()
 
         #store in txt file
         #print(df);
 
-    
+    def __display_angle_similarity(self):
+        df=self.__tfidf_angle_similarity_dataframe
+        mask = np.zeros_like(df, dtype=np.bool)
+        mask[np.triu_indices_from(mask)] = True
+        vmin = df.where(df>0).min().min()
+        vmax=df.max().max()
+        print(f"Angle similarity min {vmin}, max {vmax}")
+        sns.heatmap(df, mask=mask, annot=True, square=True,
+                    vmin=vmin,
+                    vmax=vmax,
+                    cmap="YlGnBu")
+        
+        plt.show()
+
     def fit(self):
         self.__display_tfidf()
-        
+        self.__display_angle_similarity()
         self.__fit_kmeans()
         self.__fit_pca()
         #self.__fit_lsa()

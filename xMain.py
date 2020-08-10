@@ -31,7 +31,7 @@ print(xdf.tfidf_dataframe())
 
 #print(xdf.tfidf_cosine_similarity_array())
 #print(xdf.tfidf_angle_similarity_array())
-#print(xdf.tfidf_angle_similarity_dataframe())
+print(xdf.tfidf_angle_similarity_dataframe())
 #print(xdf.tfidf_angle_similarity('ref1', 'doc2'))
 #print(xdf.tfidf_most_similar('ref1'))
 

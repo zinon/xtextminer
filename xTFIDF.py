@@ -62,13 +62,17 @@ class xTFIDF():
         self.__similarity.matrix_and_corpora_names( self.__transformer.tf_idf_matrix,
                                                     self.__corpora.names)
 
+        #representation
         self.__representation.matrix = self.__transformer.tf_idf_matrix
 
         self.__representation.corpora_names = self.__corpora.names
 
         self.__representation.feature_names = self.__vectorizer.feature_names
 
-        self.__representation.set_data_frame_tfidf( self.__transformer.tf_idf_dataframe(args=None))
+        self.__representation.tfidf_dataframe = self.__transformer.tf_idf_dataframe(args=None)
+
+        self.__representation.tfidf_angle_similarity_dataframe = \
+            self.__similarity.angle_similarity_dataframe
         
     def tfidf_matrix(self):
         return self.__transformer.tf_idf_matrix
