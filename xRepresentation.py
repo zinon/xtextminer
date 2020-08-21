@@ -1,6 +1,5 @@
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.manifold import TSNE, MDS, Isomap
-from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 from scipy.sparse.csr import csr_matrix
 import numpy as np
@@ -10,30 +9,37 @@ from sklearn.pipeline import make_pipeline
 from typing import List
 import seaborn as sns
 
+from xClusters import xClusters
+
 class xRepresentation:
     """
     Perform dimensionality reduction and represent 2d matrices 
     """
     def __init__(self, **kwargs):
-        self.__clusters = kwargs.get('clusters', 2)
+        """
+        input parameters
+        """
+        self.__n_clusters = kwargs.get('n_clusters', 2)
         self.__pca_components = kwargs.get('pca_components', 3)
+        self.__tsne_components = kwargs.get('tsne_components', 3)
         self.__components = kwargs.get('components', 2)
-        self.__kmeans_max_iter = kwargs.get('kmeans_max_iter', 300)
         self.__neighbors = kwargs.get('neighbors', 2) #10
         self.__lsa_normalization = False
 
         #sparse matrix
         self.__matrix = None
+
         #tf-idf dataframe
         self.__tfidf_dataframe = pd.DataFrame()
         self.__corpora_names = None
         self.__feature_names = None
 
+        #
+        self.__clusters = xClusters(n_clusters = self.__n_clusters)
+        
         #angular similarity
         self.__tfidf_angle_similarity_dataframe = pd.DataFrame()
         
-        #clustered terms
-        self.__clustered_terms_dataframe = pd.DataFrame()
 
         #pca
         self.__pca = PCA(n_components = self.__pca_components)
@@ -55,18 +61,6 @@ class xRepresentation:
                                n_neighbors = self.__neighbors,
                                eigen_solver='auto')
         
-        #kmeans
-        self.__kmeans = KMeans(n_clusters = self.__clusters,
-                               init='k-means++',
-                               n_init=1,
-                               max_iter = self.__kmeans_max_iter,
-                               precompute_distances = "auto",
-                               n_jobs= -1,
-                               random_state = 33)
-
-        self.__kmeans_clusters = None
-        self.__kmeans_clusters_pred = None
-        self.__kmeans_labels = None
 
         #cluster centers
         self.__kmeans_cluster_centers = None
@@ -74,6 +68,12 @@ class xRepresentation:
         #normalizer
         self.__normalizer = Normalizer(copy=False)
 
+    @property
+    def clusters(self):
+        """
+        returns an xCluster class object
+        """
+        return self.__clusters
 
     @property
     def matrix(self) -> np.matrix:
@@ -117,218 +117,37 @@ class xRepresentation:
     @tfidf_angle_similarity_dataframe.setter
     def tfidf_angle_similarity_dataframe(self, df:pd.DataFrame() = None):
         self.__tfidf_angle_similarity_dataframe = df
-            
-    @property
-    def clustered_terms_dataframe(self):
-        if self.__none_clustered_terms_dataframe():
-            self.__set_clustered_terms_dataframe()
-        return self.__clustered_terms_dataframe
-
-    def corpus_cluster(self, corpus_name) -> str:
-        """
-        user callable method
-        returns cluster associated to a given corpus name
-        # .values turns the series into a list and [0] selects the single element
-        """
-        if self.__none_clustered_terms_dataframe():
-            self.__set_clustered_terms_dataframe()
-
-        return self.__clustered_terms_dataframe[
-            self.__clustered_terms_dataframe['corpus']==corpus_name]['cluster'].values[0]
-
-    def cluster_corpora(self, cluster:int) -> List[str]:
-        """
-        user callable method
-        returns list of corpora names associated to a given cluster
-        """
-        if self.__none_clustered_terms_dataframe():
-            self.__set_clustered_terms_dataframe()
-
-        return self.__clustered_terms_dataframe[
-            self.__clustered_terms_dataframe['cluster']==cluster]['corpus'].values.tolist()
-
-    def __none_clustered_terms_dataframe(self):
-        return self.__clustered_terms_dataframe.empty
-    
+                
     def __normalize_matrix(self):
          transformer = self.__normalizer.fit(self.__matrix) # fit does nothing
          self.__matrix = transformer.transform(self.__matrix)
 
-    def __top_keywords(self, clusters, n_terms):
-        #assuming matrix is already dense
-        df = pd.DataFrame(self.__matrix).groupby(clusters).mean()
-    
-        for i, r in df.iterrows():
-            print(f'Cluster {i}: ' +
-                  ', '.join( [self.__feature_names[t] for t in np.argsort(r)[-n_terms:]] ) )
-
-    def __top_terms(self, clusters, centers):
-        order_centroids = centers.argsort()[:, ::-1]
-        for i in range(clusters):
-            top_terms = [self.__feature_names[ind] for ind in order_centroids[i, :10]]
-            print("Cluster {}: {}".format(i, ' '.join(top_terms)))
-
-    def __set_clustered_terms_dataframe(self):
-        """
-        creates a panda DataFrame of corpora associated to clusters
-        """
-        self.__clustered_terms_dataframe = pd.DataFrame( {'corpus':self.__corpora_names,
-                                                          'cluster':self.__kmeans_labels} )
         
-    def __fit_kmeans(self):
-        """
-        tf-idf Vectorizer results are normalized, which makes KMeans behave as
-        spherical k-means for better results. 
-        """
-        #Compute k-means clustering
-        self.__kmeans_clusters = self.__kmeans.fit(X=self.__matrix)
-
-        #Compute cluster centers and predict cluster index for each sample.
-        self.__kmeans_clusters_pred = self.__kmeans.fit_predict(X=self.__matrix)
-
-        self.__kmeans_labels = self.__kmeans_clusters.labels_.tolist()
-
-        self.__kmeans_cluster_centers = self.__kmeans.cluster_centers_
-
-        #top keywords
-        self.__top_keywords(self.__kmeans_clusters_pred, n_terms = 5)
-
-        #Top terms per cluster
-        self.__top_terms(self.__clusters, self.__kmeans_cluster_centers)
-        
-
-        self.__plot_kmeans()
-        
-    def __plot_kmeans(self):
-        #CONSIDER TOP N TERMS ONLY: N! / (2! (N-2)!)
-        n_selected_columns = 4
-
-        print("TF-IDF DF", self.__tfidf_dataframe.shape)
-        print("Sparse matrix", self.__matrix.shape)
-
-        ##Note: to avoid "ValueError: Masked arrays must be 1-D"
-        ##      cast the data into an numpy array.
-        y = self.__kmeans_clusters_pred
-        L = list(range(0, n_selected_columns))
-        for i,j in zip(L, L[1:] + L[:1]):        
-            print(f"TF-IDF columns {i}:{j}")
-
-            #plot matrix clusters pairwise
-            fig = plt.figure(figsize=(10,7))
-            ax = fig.add_subplot(111)
-            ax.set_title(f'Clusters ({n_selected_columns} selected documents)')
-
-            for icluster in range(self.__clusters):
-                print("CLUS", icluster,self.__clusters)
-                ax.scatter(np.array(self.__matrix[y==icluster, i]),
-                           np.array(self.__matrix[y==icluster, j]),
-                           s = 100,
-                           #c = i,
-                           alpha=0.1,
-                           label = f"Cluster {icluster}")
-
-            ax.scatter(self.__kmeans_cluster_centers[:, i],
-                       self.__kmeans_cluster_centers[:, j], 
-                       marker='x',
-                       s=200,
-                       linewidths=3,
-                       c='r')
-
-            ax.set_xlabel(f"doc {i}")
-            ax.set_ylabel(f"doc {j}")
-            ax.legend(loc="best")
-            plt.show()
-
-        """
-        ax.scatter(np.array(self.__matrix[:, i]),
-        np.array(self.__matrix[:, j]),
-        c=y,
-        s=50,
-        cmap='viridis')
-        """        
-
-
-
-        #
-        #feature names; before adding cluster information to the df
-        column_names = self.__tfidf_dataframe.columns.tolist()
-        #print(self.__tfidf_dataframe);exit(1)
-        
-        n_column_names = len(column_names)
-        #clusters
-        self.__tfidf_dataframe['cluster'] = self.__kmeans_labels
-
-        selected_column_names = column_names[:n_selected_columns]
-
-        #sns.set()
-        cmap = sns.cubehelix_palette(dark=.3, light=.8, as_cmap=True)
-        for iname, jname in zip(selected_column_names, selected_column_names[1:]):
-            print(f"kmeans cluster {iname} {jname}")
-            
-            fig = plt.figure(figsize=(10,7))
-            ax = fig.add_subplot(111)
-            ax.set_title(f'TF-IDF ({n_selected_columns} selected documents)')
-
-            #lm = sns.lmplot(data=self.__tfidf_dataframe,
-            #            x=iname,
-            #            y=jname,
-            #            hue='cluster',
-            #            fit_reg=False, legend=True, legend_out=True)
-
-            ax = sns.scatterplot(x=iname,
-                                 y=jname,
-                                 hue='cluster',
-                                 size='cluster',
-                                 #palette='Set2',
-                                 palette=cmap,
-                                 data=self.__tfidf_dataframe,
-                                 ax=ax)
-
-            #self.__tfidf_dataframe.groupby("cluster").scatter(x=iname,
-            #                                                   y=jname,
-            #                                                   marker="o",
-            #                                                   ax=ax)
-            ax.set_xlabel(iname)
-            ax.set_ylabel(jname)
-            ax.legend(loc="best")
-            plt.show()
-
-        '''        
-        cluster_colors = set(y)
-        xscatter= ax.scatter(x=column_names[0],
-                             y=column_names[1],
-                             c=1,
-                             s=300,
-                             cmap='viridis')
-
-        xscatter = self.__tfidf_dataframe.plot(kind='scatter',
-                                          x=column_names[0],
-                                          y=column_names[1],
-                                          alpha=0.1,
-                                          s=300,
-                                          cmap='viridis',
-                                          c=y)
-        '''
-
-
     def __fit_pca(self):
         
         #Fit the model with X.
         pca = self.__pca.fit(X=self.__matrix)
 
         #Apply dimensionality reduction to X.
-        pca_data2d = pca.transform(X=self.__matrix)
+        data2d = pca.transform(X=self.__matrix)
 
+        print("PCA data shape", data2d.shape)
+                
         #calculate the cluster enters on the reduced data
-        pca_cluster_centers2d = pca.transform(self.__kmeans_clusters.cluster_centers_)
+        pca_cluster_centers2d = pca.transform(self.__clusters.kmeans_cluster_centers)
 
-        n_pca_components = self.__pca.components_.shape[0]
+        n_components = self.__pca.components_.shape[0]
 
-        print("Number of PCA components", n_pca_components)
+        print("Number of PCA components", n_components)
 
-
-        y = self.__kmeans_clusters_pred
-        pairs = list(range(0, n_pca_components))
+        #cross-check
+        if n_components != data2d.shape[1]:
+            print(f'inconcistent PCA companents {n_components} '
+                  f'and 2d data row colunmns {data2d.shape[1]}')
+            return False
+        
+        y = self.__clusters.kmeans_clusters_pred
+        pairs = list(range(0, n_components))
         for i,j in zip(pairs, pairs[1:] + pairs[:1]):
             print("PCA components", i,j)
 
@@ -337,14 +156,14 @@ class xRepresentation:
             ax = fig.add_subplot(111)
             ax.set_title('PCA')
 
-            #plt.scatter(pca_data2d[:, i],
-            #            pca_data2d[:, j],
+            #plt.scatter(data2d[:, i],
+            #            data2d[:, j],
             #            c = self.__kmeans_clusters_pred) 
 
-            for icluster in range(self.__clusters):
-                print(f"Cluster {icluster}/{self.__clusters}")
-                ax.scatter(np.array(pca_data2d[y==icluster, i]),
-                           np.array(pca_data2d[y==icluster, j]),
+            for icluster in range(self.__clusters.n_actual_clusters):
+                print(f"Cluster {icluster}/{self.__clusters.n_actual_clusters}")
+                ax.scatter(np.array(data2d[y==icluster, i]),
+                           np.array(data2d[y==icluster, j]),
                            s = 100,
                            #c = i,
                            alpha=0.5,
@@ -396,14 +215,55 @@ class xRepresentation:
 
         #Fit X into an embedded space and return that transformed output.
         #Output: Embedding of the training data in low-dimensional space.
-        tsne_data2d = self.__tsne.fit_transform(X=self.__matrix)
+        data2d = self.__tsne.fit_transform(X=self.__matrix)
 
+        print("TSNE embedding shape", data2d.shape, self.__tsne.embedding_.shape)
         #plot
-        plt.scatter(tsne_data2d[:, 0],
-                    tsne_data2d [:, 1],
-                    c = self.__kmeans_clusters_pred,
-                    cmap=plt.cm.Spectral)
-        plt.show()
+        #plt.scatter(tsne_data2d[:, 0],
+        #            tsne_data2d [:, 1],
+        #            c = self.__clusters.kmeans_clusters_pred,
+        #            cmap=plt.cm.Spectral)
+        #plt.show()
+
+        #array-like, shape (n_samples, n_components)
+        n_components = self.__tsne.embedding_.shape[1]
+
+        print("Number of TSNE components", n_components)
+
+        y = self.__clusters.kmeans_clusters_pred
+        pairs = list(range(0, n_components))
+        print(pairs)
+        print(pairs[1:] + pairs[:1])
+        for i,j in zip(pairs, pairs[1:] + pairs[:1]):
+            print("TSNE components", i,j)
+
+            #plot
+            fig = plt.figure(figsize=(10,7))
+            ax = fig.add_subplot(111)
+            ax.set_title('TSNE')
+
+            #plt.scatter(data2d[:, i],
+            #            data2d[:, j],
+            #            c = self.__kmeans_clusters_pred) 
+
+            for icluster in range(self.__clusters.n_actual_clusters):
+                print(f"Cluster {icluster}/{self.__clusters.n_actual_clusters}")
+                ax.scatter(np.array(data2d[y==icluster, i]),
+                           np.array(data2d[y==icluster, j]),
+                           s = 100,
+                           #c = i,
+                           alpha=0.5,
+                           label = f"Cluster {icluster}")
+
+
+            #plt.scatter(pca_cluster_centers2d[:, i],
+            #            pca_cluster_centers2d[:, j], 
+            #            marker='x', s=200, linewidths=3, c='r')
+
+            ax.set_xlabel(f"component {i}")
+            ax.set_ylabel(f"component {j}")
+            ax.legend(loc="best")
+            plt.show()
 
     def __fit_mds(self):
         #Fit X data
@@ -492,22 +352,48 @@ class xRepresentation:
         mask = np.zeros_like(df, dtype=np.bool)
         mask[np.triu_indices_from(mask)] = True
         vmin = df.where(df>0).min().min()
-        vmax=df.max().max()
+        vmax=df.max().max() #df.values.max()
+        midpoint = (vmax - vmin) / 2
+        #smoother washed-out contours
+        alpha = 0.10
+        vmin_new = vmin*(1-alpha)
+        vmax_new = vmax*(1+alpha)
+        vmin = vmin_new
+        vmax = vmax_new if vmax_new < 90. else 90
         print(f"Angle similarity min {vmin}, max {vmax}")
-        sns.heatmap(df, mask=mask, annot=True, square=True,
+        fig = plt.figure(figsize=(10,7))
+        ax = fig.add_subplot(111)
+        ax.set_title(f'TF-IDF document angle similarity)')
+        sns.heatmap(df,
+                    mask=mask,
+                    annot=True,
+                    square=True, #forces the aspect ratio of the blocks to be equal
+                    fmt=".1f",
                     vmin=vmin,
                     vmax=vmax,
-                    cmap="YlGnBu")
+                    #center=midpoint,
+                    cmap="coolwarm",
+                    annot_kws={'size':10},
+                    ax=ax)
         
         plt.show()
 
     def fit(self):
+        """
+        user callable method to invoke fits
+        """
         self.__display_tfidf()
         self.__display_angle_similarity()
-        self.__fit_kmeans()
+
+        print(type(self.__feature_names))
+        self.__clusters.fit(matrix = self.__matrix,
+                            dataframe = self.__tfidf_dataframe,
+                            corpora = self.__corpora_names,
+                            features = self.__feature_names)
+
         self.__fit_pca()
         #self.__fit_lsa()
-        #self.__fit_tsne()
+        self.__fit_tsne()
         #self.__fit_mds()
         #self.__fit_isomap()
         

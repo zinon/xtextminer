@@ -28,7 +28,9 @@ class xTFIDF():
         self.__similarity = xSimilarity()
 
         #dimensionality reduction & representation
-        self.__representation = xRepresentation(clusters=3, components=2)
+        self.__representation = xRepresentation(n_clusters=3,
+                                                pca_components=3, #0.90
+                                                tsne_components=3)
         
     def tf(self):
         return self.__vectorizer.data_frame_tf
@@ -100,11 +102,11 @@ class xTFIDF():
         self.__representation.fit()
 
     def clustered_terms_dataframe(self):
-        return self.__representation.clustered_terms_dataframe
+        return self.__representation.clusters.clustered_terms_dataframe
 
     def corpus_cluster(self, corpus_name:str):
-        return self.__representation.corpus_cluster(corpus_name)
+        return self.__representation.clusters.corpus_cluster(corpus_name)
 
     def cluster_corpora(self, cluster:int):
-        return self.__representation.cluster_corpora(cluster)
+        return self.__representation.clusters.cluster_corpora(cluster)
     
