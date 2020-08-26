@@ -131,11 +131,13 @@ class xRepresentation:
         #Apply dimensionality reduction to X.
         data2d = pca.transform(X=self.__matrix)
 
+        #pca shape
         print("PCA data shape", data2d.shape)
                 
         #calculate the cluster enters on the reduced data
-        pca_cluster_centers2d = pca.transform(self.__clusters.kmeans_cluster_centers)
+        cluster_centers2d = pca.transform(self.__clusters.kmeans_cluster_centers)
 
+        #number of components
         n_components = self.__pca.components_.shape[0]
 
         print("Number of PCA components", n_components)
@@ -170,9 +172,13 @@ class xRepresentation:
                            label = f"Cluster {icluster}")
 
 
-            plt.scatter(pca_cluster_centers2d[:, i],
-                        pca_cluster_centers2d[:, j], 
-                        marker='x', s=200, linewidths=3, c='r')
+            plt.scatter(cluster_centers2d[:, i],
+                        cluster_centers2d[:, j], 
+                        marker='x',
+                        s=200,
+                        linewidths=3,
+                        c='r',
+                        label='Centroids')
 
             ax.set_xlabel(f"component {i}")
             ax.set_ylabel(f"component {j}")
@@ -212,22 +218,21 @@ class xRepresentation:
     def __fit_tsne(self):
         #Fit X into an embedded space.
         #tsne = self.__tsne.fit(X=self.__matrix)
-
+        #transform
+        #data2d = self.__tsne.transform(X=self.__matrix)
+        
         #Fit X into an embedded space and return that transformed output.
         #Output: Embedding of the training data in low-dimensional space.
         data2d = self.__tsne.fit_transform(X=self.__matrix)
 
+        #embedding shape
         print("TSNE embedding shape", data2d.shape, self.__tsne.embedding_.shape)
-        #plot
-        #plt.scatter(tsne_data2d[:, 0],
-        #            tsne_data2d [:, 1],
-        #            c = self.__clusters.kmeans_clusters_pred,
-        #            cmap=plt.cm.Spectral)
-        #plt.show()
 
+        #calculate the cluster enters on the reduced data
+        #cluster_centers2d = tsne.transform(self.__clusters.kmeans_cluster_centers)
+        
         #array-like, shape (n_samples, n_components)
         n_components = self.__tsne.embedding_.shape[1]
-
         print("Number of TSNE components", n_components)
 
         y = self.__clusters.kmeans_clusters_pred
@@ -242,10 +247,6 @@ class xRepresentation:
             ax = fig.add_subplot(111)
             ax.set_title('TSNE')
 
-            #plt.scatter(data2d[:, i],
-            #            data2d[:, j],
-            #            c = self.__kmeans_clusters_pred) 
-
             for icluster in range(self.__clusters.n_actual_clusters):
                 print(f"Cluster {icluster}/{self.__clusters.n_actual_clusters}")
                 ax.scatter(np.array(data2d[y==icluster, i]),
@@ -255,11 +256,14 @@ class xRepresentation:
                            alpha=0.5,
                            label = f"Cluster {icluster}")
 
-
-            #plt.scatter(pca_cluster_centers2d[:, i],
-            #            pca_cluster_centers2d[:, j], 
-            #            marker='x', s=200, linewidths=3, c='r')
-
+            #plt.scatter(cluster_centers2d[:, i],
+            #            cluster_centers2d[:, j], 
+            #            marker='x',
+            #            s=200,
+            #            linewidths=3,
+            #            c='r',
+            #            label='Centroids')
+                
             ax.set_xlabel(f"component {i}")
             ax.set_ylabel(f"component {j}")
             ax.legend(loc="best")

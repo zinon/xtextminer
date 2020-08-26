@@ -15,6 +15,9 @@ class xClusters:
         self.__n_clusters = kwargs.get('n_clusters', 2)
         self.__kmeans_max_iter = kwargs.get('kmeans_max_iter', 300)
 
+        #maximum n clusters
+        self.__n_max_kmeans_clusters = 11
+        
         #tf-idf matrix
         self.__matrix = None
 
@@ -153,7 +156,7 @@ class xClusters:
         minimize within cluster sum of square (WCSS)
         """
         wcss = []
-        for i in range(1,11):
+        for i in range(1, self.__n_max_kmeans_clusters):
             km=KMeans(n_clusters=i,
                       init='k-means++',
                       max_iter=300,
@@ -166,6 +169,25 @@ class xClusters:
         plt.xlabel('Number of clusters')
         plt.ylabel('WCSS')
         plt.show()
+
+    def __optimize_batch_kmeans(self):
+        """
+        based on SSE
+        """    
+        sse = []
+        for k in range(1, self.__n_max_kmeans_clusters):
+            sse.append(MiniBatchKMeans(n_clusters=k,
+                                       init_size=1024,
+                                       batch_size=2048,
+                                       random_state=20).fit(data).inertia_)
+        
+        f, ax = plt.subplots(1, 1)
+        ax.plot(iters, sse, marker='o')
+        ax.set_xlabel('Cluster Centers')
+        ax.set_xticks(iters)
+        ax.set_xticklabels(iters)
+        ax.set_ylabel('SSE')
+        ax.set_title('SSE by Cluster Center Plot')
         
     def __fit_kmeans(self):
         """
@@ -226,7 +248,8 @@ class xClusters:
                        marker='x',
                        s=200,
                        linewidths=3,
-                       c='r')
+                       c='r',
+                       label = 'Centroids')
 
             ax.set_xlabel(f"doc {i}")
             ax.set_ylabel(f"doc {j}")
